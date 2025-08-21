@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"personal_knowledge_tracker/internal/interfaces"
 
 	"github.com/go-logr/logr"
 )
@@ -12,8 +13,29 @@ type Dependencies struct {
 }
 
 type usecases struct {
+	user     interfaces.UserUsecases
+	review   interfaces.ReviewUsecases
+	resource interfaces.ResourceUsecases
 }
 
 func New(deps Dependencies) *usecases {
-	return &usecases{}
+	return &usecases{
+		user:     NewUserUsecases(),
+		review:   NewReviewUsecase(),
+		resource: NewResourceUsecases(),
+	}
+}
+
+var _ interfaces.Usecases = (*usecases)(nil)
+
+func (u *usecases) User() interfaces.UserUsecases {
+	return u.user
+}
+
+func (u *usecases) Review() interfaces.ReviewUsecases {
+	return u.review
+}
+
+func (u *usecases) Resource() interfaces.ResourceUsecases {
+	return u.resource
 }

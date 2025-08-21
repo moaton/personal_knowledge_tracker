@@ -12,3 +12,8 @@ http:
   server:
     http_server_port: '8088'
     http_server_write_timeout: 30
+database:
+  mongo:
+    host: localhost
+    port: 27017
+    db: pkt_db

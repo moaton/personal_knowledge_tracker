@@ -8,6 +8,7 @@ import (
 	"personal_knowledge_tracker/config"
 	"personal_knowledge_tracker/internal/interfaces"
 	"personal_knowledge_tracker/internal/usecases"
+	"personal_knowledge_tracker/pkg/database/mongodb"
 	"personal_knowledge_tracker/pkg/logger/zap"
 	"syscall"
 
@@ -21,14 +22,21 @@ type Application struct {
 	cfg        *config.Config
 	httpServer interfaces.Server
 	logger     logr.Logger
+	*mongodb.MongoDB
 
 	shutdown chan os.Signal
 }
 
 func NewWithContext(ctx context.Context, cfg *config.Config) (*Application, error) {
+	mongodb, err := mongodb.NewMongoDB(cfg.Mongo.DSN(), cfg.Mongo.DB)
+	if err != nil {
+		return nil, err
+	}
+
 	app := &Application{
 		ctx:      ctx,
 		cfg:      cfg,
+		MongoDB:  mongodb,
 		shutdown: make(chan os.Signal, 1),
 	}
 

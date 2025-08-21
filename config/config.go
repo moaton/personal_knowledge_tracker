@@ -11,9 +11,10 @@ import (
 
 type (
 	Config struct {
-		Log  `yaml:"logger"`
-		HTTP `yaml:"http"`
-		CORS `yaml:"cors"`
+		Log      `yaml:"logger"`
+		HTTP     `yaml:"http"`
+		CORS     `yaml:"cors"`
+		Database `yaml:"database"`
 	}
 
 	Log struct {
@@ -34,7 +35,19 @@ type (
 		XFrameOptions         string `env-required:"true" yaml:"cors_x_frame_options" env:"CORS_X_FRAME_OPTIONS"`
 		ContentSecurityPolicy string `env-required:"true" yaml:"cors_content_security_policy" env:"CORS_CONTENT_SECURITY_POLICY"`
 	}
+	Database struct {
+		Mongo `yaml:"mongo"`
+	}
+	Mongo struct {
+		Host string `env-required:"true" yaml:"host"`
+		Port int    `env-required:"true" yaml:"port"`
+		DB   string `env-required:"true" yaml:"db"`
+	}
 )
+
+func (m Mongo) DSN() string {
+	return fmt.Sprintf("mongodb://%s:%d", m.Host, m.Port)
+}
 
 func New() (*Config, error) {
 	cfg := &Config{}
