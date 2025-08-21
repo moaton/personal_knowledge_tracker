@@ -1,0 +1,13 @@
+basePath: /api/v1
+info:
+  contact: {}
+  description: API
+  title: Personal Knowledge Tracker API
+  version: "1.0"
+paths: {}
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
