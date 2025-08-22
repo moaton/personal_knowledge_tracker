@@ -6,7 +6,9 @@ import (
 	"os/signal"
 	"path/filepath"
 	"personal_knowledge_tracker/config"
+	bot_v1 "personal_knowledge_tracker/internal/controller/http/v1/bot"
 	"personal_knowledge_tracker/internal/interfaces"
+	"personal_knowledge_tracker/internal/repository"
 	"personal_knowledge_tracker/internal/usecases"
 	"personal_knowledge_tracker/pkg/database/mongodb"
 	"personal_knowledge_tracker/pkg/logger/zap"
@@ -20,7 +22,7 @@ type Application struct {
 	ctx        context.Context
 	cancelFunc context.CancelFunc
 	cfg        *config.Config
-	httpServer interfaces.Server
+	handler    *bot_v1.Handler
 	logger     logr.Logger
 	*mongodb.MongoDB
 
@@ -47,6 +49,7 @@ func NewWithContext(ctx context.Context, cfg *config.Config) (*Application, erro
 
 func (a *Application) Run() {
 	a.logger.Info("Application started...")
+	go a.handler.StartBot()
 
 	<-a.shutdown
 	a.Stop()
@@ -55,6 +58,7 @@ func (a *Application) Run() {
 func (a *Application) Stop() {
 	a.cancelFunc()
 	close(a.shutdown)
+	a.handler.StopBot()
 
 	a.logger.Info("Application stoped")
 }
@@ -65,7 +69,8 @@ func (a *Application) InitUsecases() interfaces.Usecases {
 
 	deps := usecases.Dependencies{
 		Ctx:    ctx,
-		Logger: a.logger,
+		Repo:   repository.New(a.Database),
+		Logger: a.logger.WithName("[usecases]"),
 	}
 
 	return usecases.New(deps)
@@ -94,6 +99,6 @@ func (a *Application) GetLogger() logr.Logger {
 	return a.logger
 }
 
-func (a *Application) RegisterHTTPServer(server interfaces.Server) {
-	a.httpServer = server
+func (a *Application) RegisterHandler(handler *bot_v1.Handler) {
+	a.handler = handler
 }

@@ -15,6 +15,7 @@ type (
 		HTTP     `yaml:"http"`
 		CORS     `yaml:"cors"`
 		Database `yaml:"database"`
+		Bot      `yaml:"bot"`
 	}
 
 	Log struct {
@@ -39,14 +40,19 @@ type (
 		Mongo `yaml:"mongo"`
 	}
 	Mongo struct {
-		Host string `env-required:"true" yaml:"host"`
-		Port int    `env-required:"true" yaml:"port"`
-		DB   string `env-required:"true" yaml:"db"`
+		Host     string `env-required:"true" yaml:"host"`
+		Port     int    `env-required:"true" yaml:"port"`
+		User     string `env-required:"true" yaml:"user"`
+		Password string `env-required:"true" yaml:"password"`
+		DB       string `env-required:"true" yaml:"db"`
+	}
+	Bot struct {
+		Token string `yaml:"token"`
 	}
 )
 
 func (m Mongo) DSN() string {
-	return fmt.Sprintf("mongodb://%s:%d", m.Host, m.Port)
+	return fmt.Sprintf("mongodb://%s:%s@%s:%d", m.User, m.Password, m.Host, m.Port)
 }
 
 func New() (*Config, error) {

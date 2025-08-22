@@ -4,9 +4,7 @@ import (
 	"context"
 	"log"
 	"personal_knowledge_tracker/internal/application"
-	"personal_knowledge_tracker/internal/controller/http"
-	httpserver "personal_knowledge_tracker/pkg/server/http"
-	"time"
+	bot_v1 "personal_knowledge_tracker/internal/controller/http/v1/bot"
 
 	"personal_knowledge_tracker/config"
 )
@@ -28,18 +26,17 @@ func main() {
 
 	usecases := app.InitUsecases()
 
-	httpRouter := http.NewRouter(http.Dependencies{
-		Cfg:      cfg,
-		Logger:   app.GetLogger(),
+	handler, err := bot_v1.NewHandler(&bot_v1.Dependency{
+		Config:   cfg,
 		Usecases: usecases,
+		Logger:   app.GetLogger(),
 	})
+	if err != nil {
+		log.Fatalf("failed to init handler: %w", err)
+	}
+	handler.Register()
 
-	httpServer := httpserver.New(httpRouter,
-		httpserver.Port(cfg.HTTP.Server.Port),
-		httpserver.WriteTimeout(time.Duration(cfg.HTTP.Server.WriteTimeout)*time.Second),
-	)
-
-	app.RegisterHTTPServer(httpServer)
+	app.RegisterHandler(handler)
 
 	app.Run()
 }

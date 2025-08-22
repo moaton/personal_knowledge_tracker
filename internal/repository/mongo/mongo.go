@@ -10,6 +10,7 @@ type mongoRepository struct {
 	userRepository     *userRepository
 	reviewRepository   *reviewRepository
 	resourceRepository *resourceRepository
+	fs                 *fs
 }
 
 func NewMongoRepository(db *mongo.Database) *mongoRepository {
@@ -17,6 +18,7 @@ func NewMongoRepository(db *mongo.Database) *mongoRepository {
 		userRepository:     NewUserRepository(db),
 		reviewRepository:   NewReviewRepository(db),
 		resourceRepository: NewResourceRepository(db),
+		fs:                 NewFS(db),
 	}
 }
 
@@ -32,4 +34,8 @@ func (r *mongoRepository) Review() interfaces.ReviewRepository {
 
 func (r *mongoRepository) Resource() interfaces.ResourceRepository {
 	return r.resourceRepository
+}
+
+func (r *mongoRepository) FileStorage() interfaces.FileStorageRepository {
+	return r.fs
 }

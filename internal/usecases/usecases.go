@@ -9,6 +9,7 @@ import (
 
 type Dependencies struct {
 	Ctx    context.Context
+	Repo   interfaces.Repository
 	Logger logr.Logger
 }
 
@@ -20,9 +21,9 @@ type usecases struct {
 
 func New(deps Dependencies) *usecases {
 	return &usecases{
-		user:     NewUserUsecases(),
-		review:   NewReviewUsecase(),
-		resource: NewResourceUsecases(),
+		user:     NewUserUsecases(deps),
+		review:   NewReviewUsecase(deps),
+		resource: NewResourceUsecases(deps),
 	}
 }
 

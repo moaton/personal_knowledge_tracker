@@ -19,5 +19,6 @@ type (
 	}
 	ResourceUsecases interface {
 		Create(ctx context.Context, resource *dto.Resource) error
+		List(ctx context.Context, userID, page, limit int64) ([]*dto.Resource, int64, error)
 	}
 )

@@ -16,4 +16,8 @@ database:
   mongo:
     host: localhost
     port: 27017
+    user: 
+    password: 
     db: pkt_db
+bot:
+  token: ''
