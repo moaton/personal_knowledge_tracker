@@ -26,6 +26,7 @@ type (
 	ResourceRepository interface {
 		Create(ctx context.Context, resource *entity.Resource) error
 		List(ctx context.Context, userID int64, page, limit int64) ([]*entity.Resource, int64, error)
+		DeleteByID(ctx context.Context, id string) error
 	}
 	FileStorageRepository interface {
 		Save(ctx context.Context, file *entity.File, data []byte) error

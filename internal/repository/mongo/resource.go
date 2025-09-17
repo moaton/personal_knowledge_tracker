@@ -2,9 +2,12 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"personal_knowledge_tracker/internal/entity"
+	"personal_knowledge_tracker/internal/types"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -51,4 +54,24 @@ func (r *resourceRepository) List(ctx context.Context, userID, page, limit int64
 	}
 
 	return resources, total, nil
+}
+
+func (r *resourceRepository) DeleteByID(ctx context.Context, id string) error {
+	hid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("failed to parse id: %w", err)
+	}
+	filter := bson.M{
+		"_id": hid,
+	}
+	res, err := r.col.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	if res.DeletedCount == 0 {
+		return &types.NotFound{}
+	}
+
+	return nil
 }

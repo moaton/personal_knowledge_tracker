@@ -10,9 +10,12 @@ var (
 	BtnMain = Menu.Text("🏠 Меню")
 	BtnHelp = Menu.Text("ℹ️ Помощь")
 
-	BtnResources     = Menu.Text("📚 Ресурсы")
-	BtnResourcesAdd  = Menu.Text("💡 Добавить ресурс")
-	BtnResourcesList = Menu.Text("🗂️ Мои ресурсы")
+	BtnResources                   = Menu.Text("📚 Ресурсы")
+	BtnResourcesAdd                = Menu.Text("💡 Добавить ресурс")
+	BtnResourcesList               = Menu.Text("🗂️ Мои ресурсы")
+	BtnResourcesDelete             = Menu.Text("🗑 Удалить ресурс")
+	BtnResourcesDeleteResourcePage = tele.Btn{Unique: "delete_resource_page"}
+	BtnResourcesDeleteResource     = tele.Btn{Unique: "delete_resource"}
 
 	BtnReviews = Menu.Text("⭐ Мои отзывы")
 

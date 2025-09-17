@@ -59,6 +59,9 @@ func (h *Handler) Register() {
 	h.bot.Handle(&ui.BtnResources, h.Resources())
 	h.bot.Handle(&ui.BtnResourcesAdd, h.ResourcesAdd())
 	h.bot.Handle(&ui.BtnResourcesList, h.ResourcesList())
+	h.bot.Handle(&ui.BtnResourcesDelete, h.ResourcesDelete())
+	h.bot.Handle(&ui.BtnResourcesDeleteResourcePage, h.deleteResourcePagination())
+	h.bot.Handle(&ui.BtnResourcesDeleteResource, h.deleteResourceByID())
 
 	h.bot.Handle("/reviews", h.Review())
 	h.bot.Handle(&ui.BtnReviews, h.Review())

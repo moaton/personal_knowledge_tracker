@@ -6,6 +6,8 @@ import (
 	botTypes "personal_knowledge_tracker/internal/controller/http/v1/bot/types"
 	"personal_knowledge_tracker/internal/controller/http/v1/bot/ui"
 	"personal_knowledge_tracker/internal/dto"
+	"personal_knowledge_tracker/internal/types"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +22,7 @@ func (h *Handler) Resources() func(c tele.Context) error {
 	return func(c tele.Context) error {
 		ui.Menu.Reply(
 			ui.Menu.Row(ui.BtnResourcesAdd, ui.BtnResourcesList),
-			ui.Menu.Row(ui.BtnMain),
+			ui.Menu.Row(ui.BtnMain, ui.BtnResourcesDelete),
 		)
 
 		return c.Send("📚 Хотите посмотреть свои ресурсы или добавить новый?", ui.Menu)
@@ -107,7 +109,7 @@ func (h *Handler) ResourcesList() func(c tele.Context) error {
 		}
 		if len(resources) == 0 {
 			ui.Menu.Reply(
-				ui.Menu.Row(ui.BtnResourcesAdd),
+				ui.Menu.Row(ui.BtnResourcesAdd, ui.BtnResourcesDelete),
 				ui.Menu.Row(ui.BtnMain),
 			)
 			return c.Send("🗂️ У вас пока нет ресурсов", ui.Menu)
@@ -126,7 +128,7 @@ func (h *Handler) ResourcesList() func(c tele.Context) error {
 
 		ui.Menu.Reply(
 			ui.Menu.Row(btns...),
-			ui.Menu.Row(ui.BtnResourcesAdd),
+			ui.Menu.Row(ui.BtnResourcesAdd, ui.BtnResourcesDelete),
 			ui.Menu.Row(ui.BtnMain),
 		)
 
@@ -180,7 +182,7 @@ func (h *Handler) resourcesList(c tele.Context) error {
 	}
 	ui.Menu.Reply(
 		ui.Menu.Row(paginationBtn...),
-		ui.Menu.Row(ui.BtnResourcesAdd),
+		ui.Menu.Row(ui.BtnResourcesAdd, ui.BtnResourcesDelete),
 		ui.Menu.Row(ui.BtnMain),
 	)
 
@@ -190,4 +192,85 @@ func (h *Handler) resourcesList(c tele.Context) error {
 		),
 		tele.ModeMarkdownV2, ui.Menu,
 	)
+}
+
+func (h *Handler) ResourcesDelete() func(c tele.Context) error {
+	return func(c tele.Context) error {
+		menu, total, err := h.deleteResourceRenderPage(c.Sender().ID, 1)
+		if err != nil {
+			return c.Send("🛑 Произошла ошибка при получении списка ресурсов")
+		}
+
+		h.userStates[c.Sender().ID] = &dto.State{
+			State: botTypes.StateResourceDelete.String(),
+			Step:  1,
+		}
+
+		return c.Send(
+			fmt.Sprintf("📂 Удаление ресурса\nСтраница %d из %d", 1, total),
+			menu,
+		)
+	}
+}
+
+func (h *Handler) deleteResourceRenderPage(userID, page int64) (*tele.ReplyMarkup, int64, error) {
+	menu := &tele.ReplyMarkup{}
+
+	resources, total, err := h.usecases.Resource().List(context.Background(), userID, page, defaultLimit)
+	if err != nil {
+		return nil, 0, fmt.Errorf("🛑 Произошла ошибка при получении списка ресурсов")
+	}
+
+	btns := []tele.Btn{}
+	for _, r := range resources {
+		btn := menu.Data(r.Title, "delete_resource", r.ID)
+		btns = append(btns, btn)
+	}
+
+	pageCount := (total + defaultLimit - 1) / defaultLimit
+
+	paginationRow := []tele.Btn{}
+	if page != 1 {
+		paginationRow = append(paginationRow, menu.Data("⬅️ Назад", "delete_resource_page", strconv.Itoa(int(page)-1)))
+	}
+	if pageCount != page {
+		paginationRow = append(paginationRow, menu.Data("Вперёд ➡️", "delete_resource_page", strconv.Itoa(int(page)+1)))
+	}
+
+	menu.Inline(
+		menu.Row(btns...),
+		menu.Row(paginationRow...),
+	)
+
+	return menu, pageCount, nil
+}
+
+func (h *Handler) deleteResourcePagination() func(c tele.Context) error {
+	return func(c tele.Context) error {
+		page, _ := strconv.ParseInt(c.Data(), 16, 64)
+		menu, total, err := h.deleteResourceRenderPage(c.Sender().ID, page)
+		if err != nil {
+			return fmt.Errorf("🛑 Произошла ошибка при получении списка ресурсов")
+		}
+
+		return c.Edit(
+			fmt.Sprintf("📂 Удаление ресурса\nСтраница %d из %d", page, total),
+			menu,
+		)
+	}
+}
+
+func (h *Handler) deleteResourceByID() func(c tele.Context) error {
+	return func(c tele.Context) error {
+		err := h.usecases.Resource().DeleteByID(context.Background(), c.Data())
+		if err != nil {
+			switch err.(type) {
+			case *types.NotFound:
+				return c.Edit("🟠 Ресурс не найден")
+			}
+			return c.Edit("🛑 Произошла ошибка при удалении ресурса")
+		}
+
+		return c.Edit(fmt.Sprintf("Ресурс %s удалён ✅", c.Data()))
+	}
 }

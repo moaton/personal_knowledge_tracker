@@ -28,3 +28,7 @@ func (r *resource) List(ctx context.Context, userID, page, limit int64) ([]*dto.
 
 	return convertResourcesToDTO(resources), total, nil
 }
+
+func (r *resource) DeleteByID(ctx context.Context, id string) error {
+	return r.repo.DeleteByID(ctx, id)
+}
